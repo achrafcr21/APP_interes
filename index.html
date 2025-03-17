@@ -1,19 +1,57 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Puntos de Interés</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <link rel="stylesheet" href="styles.css">
+    <title>Punts d'Interès</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <h1>Mapa de Puntos de Interés</h1>
-    <div id="map"></div>
+    <div class="container">
+        <h1>Punts d'Interès</h1>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="tipus">Tipus:</label>
+                <select id="tipus">
+                    <option value="">Selecciona un tipus</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="ordenacio">Ordenació:</label>
+                <select id="ordenacio">
+                    <option value="asc">Ascendent</option>
+                    <option value="desc">Descendent</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filtreNom">Filtrar per nom:</label>
+                <input type="text" id="filtreNom" placeholder="Filtrar per nom...">
+            </div>
+        </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="map.js"></script>
+        <div class="main-content">
+            <div id="map"></div>
+            
+            <div class="list-container">
+                <div class="list-header">
+                    <h2>Llista de llocs d'interès</h2>
+                    <p id="totalElements">No hi ha informació a mostrar</p>
+                    <button id="netejarLlista">Netejar llista</button>
+                </div>
+                <div id="llistaLlocs"></div>
+            </div>
+        </div>
+
+        <div id="dropZone" class="drop-zone">
+            <p>Arrossega aquí el teu arxiu CSV</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
