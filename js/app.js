@@ -7,11 +7,11 @@ class App {
     constructor() {
         this.puntsInteres = [];
         this.mapa = new Mapa('map');
-        this.initializeElements();
-        this.setupEventListeners();
+        this.inicialitzarElements();
+        this.configurarEscoltadors();
     }
 
-    initializeElements() {
+    inicialitzarElements() {
         this.tipusSelect = document.getElementById('tipus');
         this.ordenacioSelect = document.getElementById('ordenacio');
         this.filtreNomInput = document.getElementById('filtreNom');
@@ -21,14 +21,14 @@ class App {
         this.dropZone = document.getElementById('dropZone');
     }
 
-    setupEventListeners() {
+    configurarEscoltadors() {
         // Filter event listeners
-        this.tipusSelect.addEventListener('change', () => this.updateList());
-        this.ordenacioSelect.addEventListener('change', () => this.updateList());
-        this.filtreNomInput.addEventListener('input', () => this.updateList());
+        this.tipusSelect.addEventListener('change', () => this.actualitzarLlista());
+        this.ordenacioSelect.addEventListener('change', () => this.actualitzarLlista());
+        this.filtreNomInput.addEventListener('input', () => this.actualitzarLlista());
         
         // Clear list button
-        this.netejarButton.addEventListener('click', () => this.clearList());
+        this.netejarButton.addEventListener('click', () => this.esborrarLlista());
 
         // Drop zone events
         this.dropZone.addEventListener('dragover', (e) => {
@@ -45,113 +45,150 @@ class App {
             this.dropZone.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
             if (file && file.name.endsWith('.csv')) {
-                this.processCSVFile(file);
+                this.processarFitxerCSV(file);
             }
         });
     }
 
-    async processCSVFile(file) {
+    async processarFitxerCSV(file) {
         try {
             const text = await file.text();
-            const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-            const headers = lines[0].split(';');
-
+            const linies = this.obtenirLinies(text);
+            const encapçalaments = this.obtenirEncapçalaments(linies);
+            const liniesDades = this.eliminarEncapçalament(linies);
+            
             // Clear existing data
-            this.clearList();
+            this.esborrarLlista();
 
-            // Process each line
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(';');
-                if (values.length === headers.length) {
-                    const data = {};
-                    headers.forEach((header, index) => {
-                        data[header.trim()] = values[index].trim();
-                    });
-                    
-                    // Create appropriate object based on tipus
-                    let punt;
-                    if (data.tipus === 'Museu') {
-                        punt = new Museu(
-                            data.codi,
-                            false,
-                            data.pais,
-                            data.ciutat,
-                            data.nom,
-                            data['direcció'],
-                            data.tipus,
-                            parseFloat(data.latitud),
-                            parseFloat(data.longitud),
-                            parseFloat(data.puntuacio),
-                            data.horaris,
-                            parseFloat(data.preu),
-                            data.moneda,
-                            data.descripcio
-                        );
-                    } else if (data.tipus === 'Atraccio') {
-                        punt = new Atraccio(
-                            data.codi,
-                            false,
-                            data.pais,
-                            data.ciutat,
-                            data.nom,
-                            data['direcció'],
-                            data.tipus,
-                            parseFloat(data.latitud),
-                            parseFloat(data.longitud),
-                            parseFloat(data.puntuacio),
-                            data.horaris,
-                            parseFloat(data.preu),
-                            data.moneda
-                        );
-                    }
+            liniesDades.forEach(linia => {
+                const dades = this.analitzarLinia(linia, encapçalaments);
+                const punt = this.crearPunt(dades);
 
-                    if (punt) {
-                        this.puntsInteres.push(punt);
-                        
-                        // Add tipus to select if not exists
-                        if (!Array.from(this.tipusSelect.options).some(opt => opt.value === data.tipus)) {
-                            const option = document.createElement('option');
-                            option.value = data.tipus;
-                            option.textContent = data.tipus;
-                            this.tipusSelect.appendChild(option);
-                        }
-                    }
+                if (punt) {
+                    this.puntsInteres.push(punt);
+                    this.afegirTipusAlSelect(dades.tipus);
                 }
-            }
+            });
 
-            this.updateList();
+            this.actualitzarLlista();
         } catch (error) {
             console.error('Error processing CSV:', error);
         }
     }
 
-    updateList() {
+    obtenirLinies(text) {
+        return text.split('\n').map(linia => linia.trim()).filter(linia => linia);
+    }
+
+    obtenirEncapçalaments(linies) {
+        return linies[0].split(';');
+    }
+
+    eliminarEncapçalament(linies) {
+        return linies.slice(1);
+    }
+
+    analitzarLinia(linia, encapçalaments) {
+        const valors = linia.split(';');
+        const dades = {};
+        encapçalaments.forEach((encapçalament, index) => {
+            dades[encapçalament.trim()] = valors[index].trim();
+        });
+        return dades;
+    }
+
+    crearPunt(dades) {
+        let punt;
+        switch(dades.tipus) {
+            case 'Museu':
+                punt = new Museu(
+                    dades.codi,
+                    false,
+                    dades.pais,
+                    dades.ciutat,
+                    dades.nom,
+                    dades['direcció'],
+                    dades.tipus,
+                    parseFloat(dades.latitud),
+                    parseFloat(dades.longitud),
+                    parseFloat(dades.puntuacio),
+                    dades.horaris,
+                    parseFloat(dades.preu),
+                    dades.moneda,
+                    dades.descripcio
+                );
+                break;
+            case 'Atraccio':
+                punt = new Atraccio(
+                    dades.codi,
+                    false,
+                    dades.pais,
+                    dades.ciutat,
+                    dades.nom,
+                    dades['direcció'],
+                    dades.tipus,
+                    parseFloat(dades.latitud),
+                    parseFloat(dades.longitud),
+                    parseFloat(dades.puntuacio),
+                    dades.horaris,
+                    parseFloat(dades.preu),
+                    dades.moneda
+                );
+                break;
+            case 'Espai':
+                punt = new PuntInteres(
+                    dades.codi,
+                    false,
+                    dades.pais,
+                    dades.ciutat,
+                    dades.nom,
+                    dades['direcció'],
+                    dades.tipus,
+                    parseFloat(dades.latitud),
+                    parseFloat(dades.longitud),
+                    parseFloat(dades.puntuacio)
+                );
+                break;
+        }
+        return punt;
+    }
+
+    afegirTipusAlSelect(tipus) {
+        if (!Array.from(this.tipusSelect.options).some(opt => opt.value === tipus)) {
+            const option = document.createElement('option');
+            option.value = tipus;
+            option.textContent = tipus;
+            this.tipusSelect.appendChild(option);
+        }
+    }
+
+    actualitzarLlista() {
         // Apply filters
-        let filteredPunts = [...this.puntsInteres];
+        let puntsFiltrats = [...this.puntsInteres];
 
         // Filter by tipus
-        const selectedTipus = this.tipusSelect.value;
-        if (selectedTipus) {
-            filteredPunts = filteredPunts.filter(punt => punt.tipus === selectedTipus);
+        const tipusSeleccionat = this.tipusSelect.value;
+        if (tipusSeleccionat) {
+            puntsFiltrats = puntsFiltrats.filter(punt => punt.tipus === tipusSeleccionat);
         }
 
         // Filter by name
-        const searchTerm = this.filtreNomInput.value.toLowerCase();
-        if (searchTerm) {
-            filteredPunts = filteredPunts.filter(punt => 
-                punt.nom.toLowerCase().includes(searchTerm)
+        const termeDeCerca = this.filtreNomInput.value.toLowerCase();
+        if (termeDeCerca) {
+            puntsFiltrats = puntsFiltrats.filter(punt => 
+                punt.nom.toLowerCase().includes(termeDeCerca)
             );
         }
 
         // Sort
-        const isAscending = this.ordenacioSelect.value === 'asc';
-        filteredPunts.sort((a, b) => {
-            const comparison = a.nom.localeCompare(b.nom);
-            return isAscending ? comparison : -comparison;
+        const asc = this.ordenacioSelect.value === 'asc';
+        puntsFiltrats.sort((a, b) => {
+            const comparacio = a.nom.localeCompare(b.nom);
+            return asc ? comparacio : -comparacio;
         });
 
         // Update total elements text
-        this.totalElements.textContent = `Total elements: ${filteredPunts.length}`;
+        this.totalElements.textContent = `Total elements: ${puntsFiltrats.length}`;
 
         // Clear map markers
         this.mapa.borrarPunt();
@@ -160,7 +197,7 @@ class App {
         this.llistaLlocs.innerHTML = '';
 
         // Ensure points are added to the list and map
-        filteredPunts.forEach(punt => {
+        puntsFiltrats.forEach(punt => {
             const item = document.createElement('div');
             item.className = 'lloc-item';
             item.innerHTML = `
@@ -187,7 +224,7 @@ class App {
         });
     }
 
-    clearList() {
+    esborrarLlista() {
         this.puntsInteres = [];
         this.llistaLlocs.innerHTML = '';
         this.totalElements.textContent = 'No hi ha informació a mostrar';
