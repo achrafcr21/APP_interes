@@ -99,8 +99,10 @@ class App {
 
     crearPunt(dades) {
         let punt;
-        switch(dades.tipus) {
-            case 'Museu':
+        const tipus = dades.tipus.toLowerCase();
+        
+        switch(tipus) {
+            case 'museu':
                 punt = new Museu(
                     dades.codi,
                     false,
@@ -118,7 +120,7 @@ class App {
                     dades.descripcio
                 );
                 break;
-            case 'Atraccio':
+            case 'atraccio':
                 punt = new Atraccio(
                     dades.codi,
                     false,
@@ -135,7 +137,7 @@ class App {
                     dades.moneda
                 );
                 break;
-            case 'Espai':
+            case 'espai':
                 punt = new PuntInteres(
                     dades.codi,
                     false,
@@ -199,14 +201,33 @@ class App {
         // Ensure points are added to the list and map
         puntsFiltrats.forEach(punt => {
             const item = document.createElement('div');
-            item.className = 'lloc-item';
-            item.innerHTML = `
-                <h3>${punt.nom}</h3>
-                <p>${punt.direccio}, ${punt.ciutat}, ${punt.pais}</p>
-                <p>Tipus: ${punt.tipus}</p>
-                <p>Preu: ${punt instanceof Atraccio || punt instanceof Museu ? punt.getPreuIva() : 'N/A'}</p>
-            `;
+            item.className = `lloc-item tipus-${punt.tipus.toLowerCase()}`;
 
+            // Crear el botón de eliminar
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'delete';
+            deleteButton.className = 'delete-button';
+            deleteButton.onclick = () => {
+                const index = this.puntsInteres.indexOf(punt);
+                if (index > -1) {
+                    this.puntsInteres.splice(index, 1);
+                    this.actualitzarLlista();
+                }
+            };
+
+            // Crear el contenido según el tipo
+            let contingut = '';
+            if (punt.tipus === 'Espai') {
+                contingut = `${punt.nom} | ${punt.ciutat} | Tipus: ${punt.tipus}`;
+            } else {
+                contingut = `${punt.nom} | ${punt.ciutat} | Tipus: ${punt.tipus} | Horaris: ${punt.horaris} | Preu: ${punt.preu}€`;
+                if (punt.tipus === 'Museu' && punt.descripcio) {
+                    contingut += `<br>Descripció: ${punt.descripcio}`;
+                }
+            }
+
+            item.innerHTML = contingut;
+            item.appendChild(deleteButton);
             this.llistaLlocs.appendChild(item);
 
             // Add marker to map
@@ -217,9 +238,12 @@ class App {
             );
 
             // Link list item with marker
-            item.addEventListener('click', () => {
-                marker.openPopup();
-                this.mapa.actualitzarPosInitMapa(punt.latitud, punt.longitud);
+            item.addEventListener('click', (e) => {
+                // Solo abrir el popup si no se hizo clic en el botón de eliminar
+                if (!e.target.classList.contains('delete-button')) {
+                    marker.openPopup();
+                    this.mapa.actualitzarPosInitMapa(punt.latitud, punt.longitud);
+                }
             });
         });
     }

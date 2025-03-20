@@ -137,3 +137,28 @@ h1 {
     font-size: 25px;
     text-align: center;
 }
+
+/* Tipos de puntos de interés */
+.tipus-espai {
+    background-color: #98FFD9;
+}
+
+.tipus-atraccio {
+    background-color: #FFFF99;
+}
+
+.tipus-museu {
+    background-color: #FFD699;
+}
+
+/* Botón de eliminar */
+.delete-button {
+    background-color: #FF6B6B;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    float: right;
+    margin-left: 10px;
+    border-radius: 4px;
+}
