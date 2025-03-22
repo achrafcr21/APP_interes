@@ -1,4 +1,4 @@
-// Mare meva quina feinada! Aqui tenim la clase principal
+// Aixo es el arxiu mes important! Aqui es on passa tota la magia xd
 import PuntInteres from './PuntInteres.js';
 import Atraccio from './Atraccio.js';
 import Museu from './Museu.js';
@@ -6,35 +6,35 @@ import Mapa from './Mapa.js';
 
 class App {
     constructor() {
-        // Inicialitzem les variables mes importans
-        this.puntsInteres = [];
-        this.mapa = new Mapa('map');
+        // Aqui inicialitzem tot lo important per que funcioni la app
+        this.puntsInteres = [];  // array buit per guardar els punts
+        this.mapa = new Mapa('map');  // el mapa on veurem els punts
         this.inicialitzarElements();
         this.configurarEscoltadors();
     }
 
     inicialitzarElements() {
-        // Agafem els elements del DOM (aixo es important)
-        this.tipusSelect = document.getElementById('tipus');
-        this.ordenacioSelect = document.getElementById('ordenacio');
-        this.filtreNomInput = document.getElementById('filtreNom');
-        this.llistaLlocs = document.getElementById('llistaLlocs');
-        this.totalElements = document.getElementById('totalElements');
-        this.netejarButton = document.getElementById('netejarLlista');
-        this.dropZone = document.getElementById('dropZone');
-        this.paisInfoDiv = document.getElementById('paisInfo');
+        // Agafem tots els elements que necesitem del HTML
+        this.tipusSelect = document.getElementById('tipus');  // per filtrar per tipus
+        this.ordenacioSelect = document.getElementById('ordenacio');  // per ordenar la llista
+        this.filtreNomInput = document.getElementById('filtreNom');  // per buscar per nom
+        this.llistaLlocs = document.getElementById('llistaLlocs');  // on es veuen els llocs
+        this.totalElements = document.getElementById('totalElements');  // contador de elements
+        this.dropZone = document.getElementById('dropZone');  // zona per arrosegar el fitxer
+        this.netejarButton = document.getElementById('netejarLlista');  // boto per borrar tot
+        this.paisInfoDiv = document.getElementById('paisInfo');  // info del pais
     }
 
     configurarEscoltadors() {
-        // Filter event listeners
+        // Aqui configurem que passa quan fem clic als botons i tal
         this.tipusSelect.addEventListener('change', () => this.actualitzarLlista());
         this.ordenacioSelect.addEventListener('change', () => this.actualitzarLlista());
         this.filtreNomInput.addEventListener('input', () => this.actualitzarLlista());
         
-        // Clear list button
+        // Per borrar la llista
         this.netejarButton.addEventListener('click', () => this.esborrarLlista());
 
-        // Drop zone events
+        // Aixo es per quan arroseguem el fitxer CSV
         this.dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             this.dropZone.classList.add('dragover');
@@ -56,34 +56,36 @@ class App {
 
     async processarFitxerCSV(file) {
         try {
+            // Primer llegim el fitxer
             const text = await file.text();
             console.log('Contenido del CSV:', text);
             
+            // Separem les linies del fitxer
             const linies = this.obtenirLinies(text);
-            console.log('Líneas de datos:', linies);
+            console.log('Linies:', linies);
             
             const encapçalaments = this.obtenirEncapçalaments(linies);
-            console.log('Encabezados:', encapçalaments);
+            console.log('Titols:', encapçalaments);
             
             const liniesDades = this.eliminarEncapçalament(linies);
             
-            // Clear existing data
+            // Netejem tot abans de començar
             this.esborrarLlista();
             this.paisInfoDiv.innerHTML = '';
 
-            // Procesar cada línea
+            // Ara procesem cada linia del fitxer
             for (const linia of liniesDades) {
                 const dades = this.analitzarLinia(linia, encapçalaments);
-                console.log('Datos analizados:', dades);
+                console.log('Dades:', dades);
                 
-                // Obtener información del país solo si no la tenemos ya
+                // Mirem si tenim info del pais
                 if (!this.paisInfoDiv.innerHTML) {
-                    console.log('Código país:', dades.codi);
+                    console.log('Codi pais:', dades.codi);
                     const infoPais = await this.obtenirInfoPais(dades.codi);
-                    console.log('Info país:', infoPais);
+                    console.log('Info pais:', infoPais);
                     
                     if (infoPais) {
-                        // Mostrar información del país en la parte superior
+                        // Posem la bandera i el nom del pais
                         this.paisInfoDiv.innerHTML = `
                             <div>País (<img src="${infoPais.bandera}" alt="${dades.pais}" style="width: 20px; vertical-align: middle;">)</div>
                             <div>Barcelona</div>
@@ -92,7 +94,7 @@ class App {
                 }
 
                 const punt = this.crearPunt(dades);
-                console.log('Punto creado:', punt);
+                console.log('Punt nou:', punt);
 
                 if (punt) {
                     this.puntsInteres.push(punt);
@@ -100,10 +102,10 @@ class App {
                 }
             }
 
-            console.log('Total puntos:', this.puntsInteres.length);
+            console.log('Total punts:', this.puntsInteres.length);
             this.actualitzarLlista();
         } catch (error) {
-            console.error('Error procesando CSV:', error);
+            console.error('Error al processar el CSV:', error);
         }
     }
 
@@ -111,27 +113,28 @@ class App {
         if (!codiPais) return null;
         
         try {
-            console.log('Obteniendo info para país:', codiPais);
+            // Fem una crida a la API de paisos
+            console.log('Buscant info del pais:', codiPais);
             const response = await fetch(`https://restcountries.com/v3.1/alpha/${codiPais}`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Error de la API! status: ${response.status}`);
             }
             const [data] = await response.json();
-            console.log('Respuesta API:', data);
+            console.log('Resposta de la API:', data);
             
-            // Verificar que tenemos los datos necesarios
+            // Mirem si tenim tota la info que necesitem
             if (!data || !data.flags) {
-                console.error('Datos del país incompletos:', data);
+                console.error('Falten dades del pais:', data);
                 return null;
             }
 
             return {
-                bandera: data.flags.png || data.flags.svg, // Usamos la URL de la imagen de la bandera
+                bandera: data.flags.png || data.flags.svg,  // URL de la bandera
                 latitud: data.latlng ? data.latlng[0] : null,
                 longitud: data.latlng ? data.latlng[1] : null
             };
         } catch (error) {
-            console.error('Error obteniendo información del país:', error);
+            console.error('Error al buscar info del pais:', error);
             return null;
         }
     }

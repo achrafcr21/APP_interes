@@ -1,8 +1,11 @@
+// Aqui tenim la classe del mapa! He triat Leaflet perque es mes facil que Google Maps
 class Mapa {
     constructor(containerId) {
+        // Inicialitzem el mapa amb les coordenades a 0,0 (al mig del mar xd)
         this.map = L.map(containerId).setView([0, 0], 13);
-        this.markers = [];
+        this.markers = [];  // aqui guardarem els punts del mapa
         
+        // Posem el mapa de OpenStreetMap (es gratuit!)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: ' OpenStreetMap contributors'
         }).addTo(this.map);
@@ -12,15 +15,17 @@ class Mapa {
 
     async init() {
         try {
+            // Primer mirem on esta l'usuari
             const position = await this.getPosicioActual();
             this.actualitzarPosInitMapa(position.lat, position.lon);
             this.mostrarPuntInicial();
         } catch (error) {
-            console.error('Error getting initial position:', error);
+            console.error('No puc trobar on estas:', error);
         }
     }
 
     mostrarPuntInicial() {
+        // Posem un punt on esta l'usuari amb un emoji xulo
         if (this.userMarker) {
             this.userMarker.remove();
         }
@@ -36,6 +41,7 @@ class Mapa {
     }
 
     actualitzarPosInitMapa(lat, lon) {
+        // Movem el mapa a on esta l'usuari
         this.map.setView([lat, lon], 13);
         if (this.userMarker) {
             this.userMarker.setLatLng([lat, lon]);
@@ -43,6 +49,7 @@ class Mapa {
     }
 
     mostrarPunt(lat, lon, desc = "") {
+        // Afegim un punt nou al mapa
         const marker = L.marker([lat, lon])
             .bindPopup(desc)
             .addTo(this.map);
@@ -51,14 +58,16 @@ class Mapa {
     }
 
     borrarPunt() {
+        // Borrem tots els punts del mapa
         this.markers.forEach(marker => marker.remove());
         this.markers = [];
     }
 
     async getPosicioActual() {
+        // Intentem trobar on esta l'usuari
         return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
-                reject(new Error('Geolocation is not supported by your browser'));
+                reject(new Error('El teu navegador no sap on estas :('));
                 return;
             }
 
