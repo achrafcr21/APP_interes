@@ -19,6 +19,7 @@ class App {
         this.totalElements = document.getElementById('totalElements');
         this.netejarButton = document.getElementById('netejarLlista');
         this.dropZone = document.getElementById('dropZone');
+        this.paisInfoDiv = document.getElementById('paisInfo');
     }
 
     configurarEscoltadors() {
@@ -53,26 +54,82 @@ class App {
     async processarFitxerCSV(file) {
         try {
             const text = await file.text();
+            console.log('Contenido del CSV:', text);
+            
             const linies = this.obtenirLinies(text);
+            console.log('Líneas de datos:', linies);
+            
             const encapçalaments = this.obtenirEncapçalaments(linies);
+            console.log('Encabezados:', encapçalaments);
+            
             const liniesDades = this.eliminarEncapçalament(linies);
             
             // Clear existing data
             this.esborrarLlista();
+            this.paisInfoDiv.innerHTML = '';
 
-            liniesDades.forEach(linia => {
+            // Procesar cada línea
+            for (const linia of liniesDades) {
                 const dades = this.analitzarLinia(linia, encapçalaments);
+                console.log('Datos analizados:', dades);
+                
+                // Obtener información del país solo si no la tenemos ya
+                if (!this.paisInfoDiv.innerHTML) {
+                    console.log('Código país:', dades.codi);
+                    const infoPais = await this.obtenirInfoPais(dades.codi);
+                    console.log('Info país:', infoPais);
+                    
+                    if (infoPais) {
+                        // Mostrar información del país en la parte superior
+                        this.paisInfoDiv.innerHTML = `
+                            <div>País (<img src="${infoPais.bandera}" alt="${dades.pais}" style="width: 20px; vertical-align: middle;">)</div>
+                            <div>Barcelona</div>
+                        `;
+                    }
+                }
+
                 const punt = this.crearPunt(dades);
+                console.log('Punto creado:', punt);
 
                 if (punt) {
                     this.puntsInteres.push(punt);
                     this.afegirTipusAlSelect(dades.tipus);
                 }
-            });
+            }
 
+            console.log('Total puntos:', this.puntsInteres.length);
             this.actualitzarLlista();
         } catch (error) {
-            console.error('Error processing CSV:', error);
+            console.error('Error procesando CSV:', error);
+        }
+    }
+
+    async obtenirInfoPais(codiPais) {
+        if (!codiPais) return null;
+        
+        try {
+            console.log('Obteniendo info para país:', codiPais);
+            const response = await fetch(`https://restcountries.com/v3.1/alpha/${codiPais}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const [data] = await response.json();
+            console.log('Respuesta API:', data);
+            
+            // Verificar que tenemos los datos necesarios
+            if (!data || !data.flags) {
+                console.error('Datos del país incompletos:', data);
+                return null;
+            }
+
+            return {
+                bandera: data.flags.png || data.flags.svg, // Usamos la URL de la imagen de la bandera
+                latitud: data.latlng ? data.latlng[0] : null,
+                longitud: data.latlng ? data.latlng[1] : null
+            };
+        } catch (error) {
+            console.error('Error obteniendo información del país:', error);
+            return null;
         }
     }
 
@@ -217,10 +274,12 @@ class App {
 
             // Crear el contenido según el tipo
             let contingut = '';
+            const paisInfo = punt.banderaPais ? `${punt.pais} ${punt.banderaPais}` : punt.pais;
+            
             if (punt.tipus === 'Espai') {
-                contingut = `${punt.nom} | ${punt.ciutat} | Tipus: ${punt.tipus}`;
+                contingut = `${punt.nom} | ${punt.ciutat}<br>${paisInfo} | Tipus: ${punt.tipus}`;
             } else {
-                contingut = `${punt.nom} | ${punt.ciutat} | Tipus: ${punt.tipus} | Horaris: ${punt.horaris} | Preu: ${punt.preu}€`;
+                contingut = `${punt.nom} | ${punt.ciutat}<br>${paisInfo} | Tipus: ${punt.tipus} | Horaris: ${punt.horaris} | Preu: ${punt.preu}€`;
                 if (punt.tipus === 'Museu' && punt.descripcio) {
                     contingut += `<br>Descripció: ${punt.descripcio}`;
                 }
@@ -234,7 +293,7 @@ class App {
             const marker = this.mapa.mostrarPunt(
                 punt.latitud,
                 punt.longitud,
-                `<strong>${punt.nom}</strong><br>${punt.direccio}`
+                `<strong>${punt.nom}</strong><br>${punt.direccio}<br>Puntuació: ${punt.puntuacio}`
             );
 
             // Link list item with marker

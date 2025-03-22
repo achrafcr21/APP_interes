@@ -162,3 +162,19 @@ h1 {
     margin-left: 10px;
     border-radius: 4px;
 }
+
+/* Información del país */
+.pais-info {
+    background-color: #f5f5f5;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pais-info .bandera {
+    font-size: 1.5em;
+    margin-right: 10px;
+}

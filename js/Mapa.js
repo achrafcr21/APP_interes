@@ -4,7 +4,7 @@ class Mapa {
         this.markers = [];
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: ' OpenStreetMap contributors'
         }).addTo(this.map);
 
         this.init();
@@ -30,7 +30,9 @@ class Mapa {
                 html: '📍',
                 iconSize: [25, 25]
             })
-        }).addTo(this.map);
+        })
+        .bindPopup('Estàs aquí')
+        .addTo(this.map);
     }
 
     actualitzarPosInitMapa(lat, lon) {
