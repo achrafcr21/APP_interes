@@ -1,3 +1,4 @@
+// Mare meva quina feinada! Aqui tenim la clase principal
 import PuntInteres from './PuntInteres.js';
 import Atraccio from './Atraccio.js';
 import Museu from './Museu.js';
@@ -5,6 +6,7 @@ import Mapa from './Mapa.js';
 
 class App {
     constructor() {
+        // Inicialitzem les variables mes importans
         this.puntsInteres = [];
         this.mapa = new Mapa('map');
         this.inicialitzarElements();
@@ -12,6 +14,7 @@ class App {
     }
 
     inicialitzarElements() {
+        // Agafem els elements del DOM (aixo es important)
         this.tipusSelect = document.getElementById('tipus');
         this.ordenacioSelect = document.getElementById('ordenacio');
         this.filtreNomInput = document.getElementById('filtreNom');
